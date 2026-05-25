@@ -12,6 +12,7 @@ const roundSchema = new mongoose.Schema(
     redScore: { type: Number, default: 0 },
     blackScore: { type: Number, default: 0 },
     winningReason: { type: String, default: "" },
+    luckyMultiplier: { type: Number, default: 0 },
     status: { type: String, enum: ["open", "settled"], default: "open" }
   },
   { timestamps: true }

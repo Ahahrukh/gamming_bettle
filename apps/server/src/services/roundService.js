@@ -44,6 +44,7 @@ function publicRound(round, now = new Date()) {
     redScore: showCards ? round.redScore : 0,
     blackScore: showCards ? round.blackScore : 0,
     winningReason: showCards ? round.winningReason : "",
+    luckyMultiplier: showCards ? round.luckyMultiplier : 0,
     status: round.status,
     phase: revealing ? "reveal" : round.status === "open" ? "betting" : "settled"
   };
@@ -125,7 +126,8 @@ function dealRoundHands() {
     outcome,
     redScore: red.score,
     blackScore: black.score,
-    winningReason: outcome === "red" ? red.label : black.label
+    winningReason: outcome === "red" ? red.label : black.label,
+    luckyMultiplier: crypto.randomInt(1, 7)
   };
 }
 
@@ -199,6 +201,7 @@ export async function settleExpiredRounds() {
           redScore: deal.redScore,
           blackScore: deal.blackScore,
           winningReason: deal.winningReason,
+          luckyMultiplier: deal.luckyMultiplier,
           revealEndsAt,
           status: "settled"
         }
@@ -212,7 +215,11 @@ export async function settleExpiredRounds() {
     const bets = await Bet.find({ round: round._id, status: "pending" });
 
     for (const bet of bets) {
-      if (bet.color === deal.outcome) {
+      if (bet.color === "lucky") {
+        bet.status = "won";
+        bet.payout = bet.amount * deal.luckyMultiplier;
+        await User.findByIdAndUpdate(bet.user, { $inc: { balance: bet.payout } });
+      } else if (bet.color === deal.outcome) {
         bet.status = "won";
         bet.payout = bet.amount * 2;
         await User.findByIdAndUpdate(bet.user, { $inc: { balance: bet.payout } });

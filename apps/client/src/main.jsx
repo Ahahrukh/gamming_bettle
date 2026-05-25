@@ -62,12 +62,13 @@ function CardShow({ round }) {
         <div className={`winner-burst ${round.outcome}`}>
           <span>{round.outcome.toUpperCase()}</span>
           <strong>WON</strong>
+          <em>Lucky Hit x{round.luckyMultiplier}</em>
         </div>
       )}
       <div className="winner-strip">
         <span>{revealed ? "Winner" : "Cards open after timer"}</span>
         <strong className={revealed ? round.outcome : ""}>
-          {revealed ? `${round.outcome.toUpperCase()} - ${round.winningReason}` : "WAITING"}
+          {revealed ? `${round.outcome.toUpperCase()} - ${round.winningReason} - Lucky x${round.luckyMultiplier}` : "WAITING"}
         </strong>
       </div>
     </div>
@@ -250,13 +251,18 @@ function Game({ auth }) {
     setError("");
     setMessage("");
 
+    if (Number(amount) < 10) {
+      setError("Minimum bet is ₹10");
+      return;
+    }
+
     try {
       const data = await auth.authFetch("/game/bets", {
         method: "POST",
         body: JSON.stringify({ color, amount: Number(amount) })
       });
       auth.setUser(data.user);
-      setMessage(`Bet placed on ${color.toUpperCase()} for ${money(amount)}`);
+      setMessage(`Bet added on ${color === "lucky" ? "LUCKY HIT" : color.toUpperCase()} for ${money(amount)}`);
       await loadBets();
     } catch (err) {
       setError(err.message);
@@ -332,8 +338,14 @@ function Game({ auth }) {
             </button>
           </div>
 
+          <button className="lucky-choice" onClick={() => placeBet("lucky")} disabled={!round || isRevealPhase || remaining <= 2}>
+            <Sparkles size={20} />
+            <span>LUCKY HIT</span>
+            <small>pays x1 to x6</small>
+          </button>
+
           <div className="chips" aria-label="Quick bet amounts">
-            {[5, 10, 20, 30].map((chip) => (
+            {[10, 20, 30, 50].map((chip) => (
               <button type="button" className={Number(amount) === chip ? "active" : ""} onClick={() => setAmount(chip)} key={chip}>
                 ₹{chip}
               </button>
@@ -342,7 +354,7 @@ function Game({ auth }) {
 
           <label className="amount-box">
             Bet Amount
-            <input type="number" min="1" value={amount} onChange={(event) => setAmount(event.target.value)} />
+            <input type="number" min="10" value={amount} onChange={(event) => setAmount(event.target.value)} />
           </label>
 
           {(message || error) && <p className={error ? "error" : "success"}>{error || message}</p>}
@@ -390,7 +402,7 @@ function Game({ auth }) {
             bets.map((bet) => (
               <div key={bet._id} className="bet-row">
                 <span>#{bet.roundNumber}</span>
-                <strong className={bet.color}>{bet.color}</strong>
+                <strong className={bet.color}>{bet.color === "lucky" ? "lucky hit" : bet.color}</strong>
                 <span>{money(bet.amount)}</span>
                 <span className={`status ${bet.status}`}>{bet.status}</span>
               </div>

@@ -473,7 +473,8 @@ input:focus {
 }
 
 .winner-burst span,
-.winner-burst strong {
+.winner-burst strong,
+.winner-burst em {
   position: relative;
   text-align: center;
   text-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
@@ -488,6 +489,13 @@ input:focus {
 .winner-burst strong {
   font-size: clamp(22px, 5vw, 40px);
   letter-spacing: 0;
+}
+
+.winner-burst em {
+  color: #f2d879;
+  font-size: clamp(16px, 4vw, 28px);
+  font-style: normal;
+  font-weight: 950;
 }
 
 .winner-burst.red span,
@@ -559,6 +567,33 @@ input:focus {
 
 .black-choice {
   background: linear-gradient(145deg, #343640, #050506);
+}
+
+.lucky-choice {
+  width: 100%;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  border: 1px solid rgba(242, 216, 121, 0.42);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(242, 216, 121, 0.22), rgba(24, 143, 134, 0.18), rgba(14, 14, 17, 0.92));
+  color: #f7f4ec;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 16px 34px rgba(0, 0, 0, 0.18);
+}
+
+.lucky-choice span {
+  color: #f2d879;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.lucky-choice small {
+  justify-self: end;
+  color: #cfc8ba;
 }
 
 .chips {
@@ -710,7 +745,7 @@ input:focus {
 }
 
 .bet-row {
-  grid-template-columns: 0.9fr 1fr 1fr auto;
+  grid-template-columns: 0.75fr 1.25fr 1fr auto;
 }
 
 .status {
@@ -728,6 +763,10 @@ input:focus {
 
 .status.lost {
   color: #ffb5b5;
+}
+
+.lucky {
+  color: #f2d879;
 }
 
 .empty {
@@ -834,6 +873,23 @@ input:focus {
   }
 
   .choice small {
+    font-size: 12px;
+  }
+
+  .lucky-choice {
+    min-height: 52px;
+    grid-template-columns: auto 1fr;
+    justify-content: stretch;
+    padding: 0 12px;
+  }
+
+  .lucky-choice span {
+    font-size: 18px;
+  }
+
+  .lucky-choice small {
+    grid-column: 2;
+    justify-self: start;
     font-size: 12px;
   }
 

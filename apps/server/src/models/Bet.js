@@ -5,8 +5,8 @@ const betSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     round: { type: mongoose.Schema.Types.ObjectId, ref: "Round", required: true },
     roundNumber: { type: Number, required: true },
-    color: { type: String, enum: ["red", "black"], required: true },
-    amount: { type: Number, required: true, min: 1 },
+    color: { type: String, enum: ["red", "black", "lucky"], required: true },
+    amount: { type: Number, required: true, min: 10 },
     status: { type: String, enum: ["pending", "won", "lost"], default: "pending" },
     payout: { type: Number, default: 0 }
   },
@@ -15,5 +15,6 @@ const betSchema = new mongoose.Schema(
 
 betSchema.index({ user: 1, createdAt: -1 });
 betSchema.index({ round: 1, status: 1 });
+betSchema.index({ user: 1, round: 1, color: 1 });
 
 export const Bet = mongoose.model("Bet", betSchema);

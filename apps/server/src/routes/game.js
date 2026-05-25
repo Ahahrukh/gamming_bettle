@@ -14,12 +14,12 @@ gameRouter.post("/bets", requireAuth, async (req, res) => {
   const color = String(req.body.color || "").toLowerCase();
   const amount = Number(req.body.amount);
 
-  if (!["red", "black"].includes(color)) {
-    return res.status(400).json({ message: "Choose red or black" });
+  if (!["red", "black", "lucky"].includes(color)) {
+    return res.status(400).json({ message: "Choose red, black or lucky hit" });
   }
 
-  if (!Number.isFinite(amount) || amount < 1) {
-    return res.status(400).json({ message: "Minimum bet is ₹1" });
+  if (!Number.isFinite(amount) || amount < 10) {
+    return res.status(400).json({ message: "Minimum bet is ₹10" });
   }
 
   const round = await ensureCurrentRound();
@@ -35,13 +35,21 @@ gameRouter.post("/bets", requireAuth, async (req, res) => {
   user.balance = Number((user.balance - amount).toFixed(2));
   await user.save();
 
-  const bet = await Bet.create({
-    user: user._id,
-    round: round._id,
-    roundNumber: round.roundNumber,
-    color,
-    amount
-  });
+  const bet = await Bet.findOneAndUpdate(
+    { user: user._id, round: round._id, color },
+    {
+      $setOnInsert: {
+        user: user._id,
+        round: round._id,
+        roundNumber: round.roundNumber,
+        color,
+        status: "pending",
+        payout: 0
+      },
+      $inc: { amount }
+    },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
 
   res.status(201).json({
     bet,
@@ -58,6 +66,6 @@ gameRouter.get("/bets/me", requireAuth, async (req, res) => {
   const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
   const bets = await Bet.find({ user: req.user._id, createdAt: { $gte: eightDaysAgo } })
     .sort({ createdAt: -1 })
-    .limit(200);
+    .limit(30);
   res.json({ bets });
 });
