@@ -4,7 +4,7 @@ import { connectDb } from "./config/db.js";
 import { env } from "./config/env.js";
 import { authRouter } from "./routes/auth.js";
 import { gameRouter } from "./routes/game.js";
-import { ensureCurrentRound, startRoundCron } from "./services/roundService.js";
+import { ensureCurrentRound, settleExpiredRounds, startRoundCron } from "./services/roundService.js";
 
 const app = express();
 
@@ -28,6 +28,16 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, serverTime: new Date() });
 });
 
+app.get("/api/cron/settle", async (req, res, next) => {
+  try {
+    await settleExpiredRounds();
+    await ensureCurrentRound();
+    res.json({ ok: true, serverTime: new Date() });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use("/api/auth", authRouter);
 app.use("/api/game", gameRouter);
 
@@ -38,17 +48,22 @@ app.use((error, req, res, next) => {
 
 await connectDb();
 await ensureCurrentRound();
-startRoundCron();
 
-const server = app.listen(env.port, () => {
-  console.log(`API running on http://localhost:${env.port}`);
-});
+if (!process.env.VERCEL) {
+  startRoundCron();
 
-server.on("error", (error) => {
-  if (error.code === "EADDRINUSE") {
-    console.error(`Port ${env.port} is already in use. Stop the old backend process, then run npm run server again.`);
-    process.exit(1);
-  }
+  const server = app.listen(env.port, () => {
+    console.log(`API running on http://localhost:${env.port}`);
+  });
 
-  throw error;
-});
+  server.on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`Port ${env.port} is already in use. Stop the old backend process, then run npm run server again.`);
+      process.exit(1);
+    }
+
+    throw error;
+  });
+}
+
+export default app;
